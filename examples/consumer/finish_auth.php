@@ -1,6 +1,10 @@
 <?php
 
 require_once "common.php";
+// Includes required files
+require_once "Auth/OpenID/Consumer.php";
+require_once "Auth/OpenID/FileStore.php";
+require_once "Auth/OpenID/AX.php";
 session_start();
 
 function escape($thing) {
@@ -38,22 +42,23 @@ function run() {
             $success .= '  (XRI CanonicalID: '.$escaped_canonicalID.') ';
         }
 
-        $sreg_resp = Auth_OpenID_SRegResponse::fromSuccessResponse($response);
-
-        $sreg = $sreg_resp->contents();
-
-        if (@$sreg['email']) {
-            $success .= "  You also returned '".escape($sreg['email']).
+        
+        // Get registration informations
+    $ax = new Auth_OpenID_AX_FetchResponse();
+    $obj = $ax->fromSuccessResponse($response);
+	
+        if (@$obj->data["http://axschema.org/contact/email"][0]) {
+            $success .= "  You also returned '".escape($obj->data["http://axschema.org/contact/email"][0]).
                 "' as your email.";
         }
 
-        if (@$sreg['nickname']) {
-            $success .= "  Your nickname is '".escape($sreg['nickname']).
+        if (@$obj->data["http://axschema.org/namePerson/first"]) {
+            $success .= "  Your first name is '".escape($obj->data["http://axschema.org/namePerson/first"][0]).
                 "'.";
         }
 
-        if (@$sreg['fullname']) {
-            $success .= "  Your fullname is '".escape($sreg['fullname']).
+        if (@$obj->data["http://axschema.org/namePerson/last"]) {
+            $success .= "  Your last name is '".escape($obj->data["http://axschema.org/namePerson/last"][0]).
                 "'.";
         }
 
